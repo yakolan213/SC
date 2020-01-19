@@ -50,8 +50,8 @@ def DTD_borda(votes):
         return_f.append(fi)
         wi = math.log10((1 - fi) / fi)
         weights.append(wi)
-    for key in votes.keys():
-        scores[key] = 0
+        for key in nb:
+            scores[key] = 0
     for row in range(0, num_of_unique_voters, 1):
         buildings = num_of_buildings - 1
         array = votes.loc[[row]]
@@ -320,9 +320,9 @@ def scatter_plot(votes):
     buildings = truth_df.keys().tolist()
     rankings = truth_df.values.tolist()
     true_buildings = []
-    reverse_dict = dict(zip(rankings[0], buildings))
-    for i in range(0, len(rankings[0])):
-        true_buildings.append(int(reverse_dict[i]))
+    rank = rankings[0]
+    for i in range(len(buildings)):
+        true_buildings.append(int((buildings[rank[i]])))
     num_of_buildings = len(pd.DataFrame.count(truth_df, axis=0))
     num_of_unique_voters = len(pd.DataFrame.count(votes, axis=1))
     votes[~votes.isin(true_buildings)] = -1
@@ -347,7 +347,7 @@ def scatter_plot(votes):
     x = list(range(0,num_of_unique_voters))
     plt.scatter(d_list, return_f, label = 'KT Distance VS Proxy pi', color='red')
     plt.legend(loc='best')
-    plt.title('The distance from the truth VS vs The Proxy distance pai')
+    plt.title('The distance from the truth VS The Proxy distance pai')
     plt.xlabel('Distance')
     plt.ylabel('pi')
     plt.show()
@@ -358,9 +358,9 @@ def true_error(votes):
     buildings = truth_df.keys().tolist()
     rankings = truth_df.values.tolist()
     true_buildings = []
-    reverse_dict = dict(zip(rankings[0], buildings))
-    for i in range(0, len(rankings[0])):
-        true_buildings.append(int(reverse_dict[i]))
+    rank = rankings[0]
+    for i in range(len(buildings)):
+        true_buildings.append(int((buildings[rank[i]])))
     votes[~votes.isin(true_buildings)] = -1
     arch_votes_list = votes.values.tolist()
     data = []
@@ -409,17 +409,18 @@ def true_error(votes):
             d = kendall_tau(x_hat, true_buildings)
             d = d / (num_of_buildings * (num_of_buildings - 1) / 2)
             y_alg_avg+=d
-        c_dtd.append(c_dtd_avg/num_of_iterations)
-        c_ptd.append(c_ptd_avg/num_of_iterations)
-        c_uw.append(c_uw_avg/num_of_iterations)
-        b_dtd.append(b_dtd_avg/num_of_iterations)
-        b_ptd.append(b_ptd_avg/num_of_iterations)
-        b_uw.append(b_uw_avg/num_of_iterations)
-        y_alg.append(y_alg_avg/num_of_iterations)
+        c_dtd.append(c_dtd_avg/num_of_samples)
+        c_ptd.append(c_ptd_avg/num_of_samples)
+        c_uw.append(c_uw_avg/num_of_samples)
+        b_dtd.append(b_dtd_avg/num_of_samples)
+        b_ptd.append(b_ptd_avg/num_of_samples)
+        b_uw.append(b_uw_avg/num_of_samples)
+        y_alg.append(y_alg_avg/num_of_samples)
 
     plt.plot(sample_size, c_dtd, label='DTD copeland')
     plt.plot(sample_size, c_ptd, label='PTD copeland')
     plt.plot(sample_size, c_uw, label='UW copeland')
+    plt.plot(sample_size, y_alg, label='Our Algorithm')
     plt.legend(loc='best')
     plt.title('AVG Error as a function of Sample Size')
     plt.xlabel('Sample Size')
@@ -430,13 +431,6 @@ def true_error(votes):
     plt.plot(sample_size, b_dtd, label='DTD borda')
     plt.plot(sample_size, b_ptd, label='PTD borda')
     plt.plot(sample_size, b_uw, label='UW borda')
-    plt.legend(loc='best')
-    plt.title('AVG Error as a function of Sample Size')
-    plt.xlabel('Sample Size')
-    plt.ylabel('AVG Error')
-    plt.legend()
-    plt.show()
-
     plt.plot(sample_size, y_alg, label='Our Algorithm')
     plt.legend(loc='best')
     plt.title('AVG Error as a function of Sample Size')
@@ -444,6 +438,14 @@ def true_error(votes):
     plt.ylabel('AVG Error')
     plt.legend()
     plt.show()
+
+    # plt.plot(sample_size, y_alg, label='Our Algorithm')
+    # plt.legend(loc='best')
+    # plt.title('AVG Error as a function of Sample Size')
+    # plt.xlabel('Sample Size')
+    # plt.ylabel('AVG Error')
+    # plt.legend()
+    # plt.show()
 
 
 if __name__ == '__main__':
@@ -461,16 +463,16 @@ if __name__ == '__main__':
     # print(PTD_Copeland(votes))
     # print(UW_borda(votes))
     # print(UW_Copeland(votes))
-    # scatter_plot(votes)
+    #scatter_plot(votes)
     # print(your_algorithm(votes))
-    #true_error(votes)
+    true_error(votes)
 
-    with open("estimations.csv", 'w', newline='') as file:
-        wr = csv.writer(file)
-        wr.writerow(DTD_borda(votes))
-        wr.writerow(DTD_Copeland(votes))
-        wr.writerow(PTD_borda(votes))
-        wr.writerow(PTD_Copeland(votes))
-        wr.writerow(UW_borda(votes))
-        wr.writerow(UW_Copeland(votes))
-        wr.writerow(your_algorithm(votes))
+    # with open("estimations.csv", 'w', newline='') as file:
+    #     wr = csv.writer(file)
+    #     wr.writerow(DTD_borda(votes))
+    #     wr.writerow(DTD_Copeland(votes))
+    #     wr.writerow(PTD_borda(votes))
+    #     wr.writerow(PTD_Copeland(votes))
+    #     wr.writerow(UW_borda(votes))
+    #     wr.writerow(UW_Copeland(votes))
+    #     wr.writerow(your_algorithm(votes))
