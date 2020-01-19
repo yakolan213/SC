@@ -48,6 +48,10 @@ def DTD_borda(votes):
         fi = kendall_tau(pref, votes_list[f])
         fi = fi / (num_of_buildings * (num_of_buildings - 1) / 2)
         return_f.append(fi)
+        if(fi<0.01):
+            fi = 0.01
+        if(fi>0.99):
+            fi = 0.99
         wi = math.log10((1 - fi) / fi)
         weights.append(wi)
         for key in nb:
@@ -70,7 +74,7 @@ def DTD_Copeland(votes):
     nb.sort()
     votes.index = range(num_of_unique_voters)
     weights = [1]*num_of_unique_voters
-    mat = calculate_pairwise_matrix(votes,weights)
+    mat = calculate_pairwise_matrix(votes,weights,nb)
     pref = reorder_by_rank(list(mat.sum(axis=1)),nb)
     pref = list(map(int, pref))
     return_f = []
@@ -81,9 +85,13 @@ def DTD_Copeland(votes):
         fi = kendall_tau(pref,votes_list[f])
         fi = fi / (num_of_buildings * (num_of_buildings-1)/2)
         return_f.append(fi)
+        if(fi<0.01):
+            fi = 0.01
+        if(fi>0.99):
+            fi = 0.99
         wi = math.log10((1 - fi) / fi)
         weights.append(wi)
-    mat = calculate_pairwise_matrix(votes,weights)
+    mat = calculate_pairwise_matrix(votes,weights,nb)
     pref = reorder_by_rank(list(mat.sum(axis=1)),nb)
     pref = list(map(int, pref))
     return pref,return_f
@@ -103,6 +111,10 @@ def PTD_borda(votes):
         fi = pi
         fi = fi / (num_of_buildings * (num_of_buildings - 1) / 2)
         return_f.append(fi)
+        if(fi<0.01):
+            fi = 0.01
+        if(fi>0.99):
+            fi = 0.99
         wi = math.log10((1 - fi) / fi)
         weights.append(wi)
     scores = {}
@@ -132,9 +144,13 @@ def PTD_Copeland(votes):
         fi = pi
         fi = fi / (num_of_buildings * (num_of_buildings - 1) / 2)
         return_f.append(fi)
+        if(fi<0.01):
+            fi = 0.01
+        if(fi>0.99):
+            fi = 0.99
         wi = math.log10((1 - fi) / fi)
         weights.append(wi)
-    mat = calculate_pairwise_matrix(votes, weights)
+    mat = calculate_pairwise_matrix(votes, weights,nb)
     pref = reorder_by_rank(list(mat.sum(axis=1)),nb)
     pref = list(map(int, pref))
     return pref, return_f
@@ -174,7 +190,7 @@ def UW_Copeland(votes):
     nb = nb_values[0].copy()
     nb.sort()
     weights = [1] * num_of_unique_voters
-    mat = calculate_pairwise_matrix(votes, weights)
+    mat = calculate_pairwise_matrix(votes, weights,nb)
     pref = reorder_by_rank(list(mat.sum(axis=1)),nb)
     pref = list(map(int, pref))
     return_f = []
@@ -227,12 +243,12 @@ def kendall_tau(rank_a, rank_b):
             dist += 1
     return dist
 
-def calculate_pairwise_matrix(df,weights):
+def calculate_pairwise_matrix(df,weights,competitors):
     num_of_buildings = len(pd.DataFrame.count(df, axis=0))
     num_of_unique_voters = len(pd.DataFrame.count(df, axis=1))
     df.index = range(num_of_unique_voters)
     pairwise_matrix = np.zeros((num_of_buildings, num_of_buildings))
-    competitors = list(df.keys())
+    # competitors = list(df.keys())
     building1, building2 = 0, 0
     for x in range(0,num_of_buildings,1):
         for y in range(x+1,num_of_buildings,1):
@@ -263,7 +279,7 @@ def calculate_pairwise_matrix(df,weights):
                 pairwise_winner = max(scores, key=scores.get)
                 pairwise_loser = min(scores, key=scores.get)
             if (pairwise_loser != pairwise_winner):
-                pairwise_matrix[int(pairwise_winner), int(pairwise_loser)] = 1
+                pairwise_matrix[int(competitors.index(pairwise_winner)), int(competitors.index(pairwise_loser))] = 1
     return pairwise_matrix
 
 def reorder_by_rank(order,buildings):
@@ -325,8 +341,9 @@ def scatter_plot(votes):
         true_buildings.append(int((buildings[rank[i]])))
     num_of_buildings = len(pd.DataFrame.count(truth_df, axis=0))
     num_of_unique_voters = len(pd.DataFrame.count(votes, axis=1))
-    votes[~votes.isin(true_buildings)] = -1
-    arch_votes_list = votes.values.tolist()
+    new_votes = copy.deepcopy(votes)
+    new_votes[~new_votes.isin(true_buildings)] = -1
+    arch_votes_list = new_votes.values.tolist()
     d_list = []
     pi_votes_list = []
     for vote in arch_votes_list:
@@ -361,8 +378,9 @@ def true_error(votes):
     rank = rankings[0]
     for i in range(len(buildings)):
         true_buildings.append(int((buildings[rank[i]])))
-    votes[~votes.isin(true_buildings)] = -1
-    arch_votes_list = votes.values.tolist()
+    new_votes2 = copy.deepcopy(votes)
+    new_votes2[~new_votes2.isin(true_buildings)] = -1
+    arch_votes_list = new_votes2.values.tolist()
     data = []
     for vote in arch_votes_list:
         new_rank = []
@@ -463,16 +481,17 @@ if __name__ == '__main__':
     # print(PTD_Copeland(votes))
     # print(UW_borda(votes))
     # print(UW_Copeland(votes))
-    #scatter_plot(votes)
     # print(your_algorithm(votes))
-    true_error(votes)
 
-    # with open("estimations.csv", 'w', newline='') as file:
-    #     wr = csv.writer(file)
-    #     wr.writerow(DTD_borda(votes))
-    #     wr.writerow(DTD_Copeland(votes))
-    #     wr.writerow(PTD_borda(votes))
-    #     wr.writerow(PTD_Copeland(votes))
-    #     wr.writerow(UW_borda(votes))
-    #     wr.writerow(UW_Copeland(votes))
-    #     wr.writerow(your_algorithm(votes))
+
+    with open("estimations.csv", 'w', newline='') as file:
+        wr = csv.writer(file)
+        wr.writerow(DTD_borda(votes))
+        wr.writerow(DTD_Copeland(votes))
+        wr.writerow(PTD_borda(votes))
+        wr.writerow(PTD_Copeland(votes))
+        wr.writerow(UW_borda(votes))
+        wr.writerow(UW_Copeland(votes))
+        wr.writerow(your_algorithm(votes))
+        scatter_plot(votes)
+        true_error(votes)
