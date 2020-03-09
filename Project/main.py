@@ -1,10 +1,7 @@
 import pandas
 from voters import Voter
-import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib.patches as mpatches
-from UI import UI
-
+import argparse
+import plots
 
 def create_voters(path):
     """
@@ -37,70 +34,94 @@ def create_voters(path):
         voters.append(voter)
     return voters, candidates
 
-def create_plot(param_values_dict, v):
+
+
+def parser_object():
     """
-    create the plot object
-    :param param_values_dict: the parameter we want to create the plot for
-    :param v: the voter object, in order to give the plot an id
-    :return: plot figure
+    :return: Parse the parameters
     """
-    bar_v = []
-    height = []
-    colors_list = []
-    tie_candidates = {}
-    param_list = []
-    legend = ''
-    for param, candidate in param_values_dict.items():
-        bar_v.append(param)
-        height.append(1)
-        param_list.append(param)
-        if len(candidate) == 1:
-            if candidate[0] == 'Grey':
-                colors_list.append('grey')
-            elif candidate[0] == 'Blue':
-                colors_list.append('blue')
-            elif candidate[0] == 'Red':
-                colors_list.append('red')
-        else:
-            colors_list.append('green')
-            tie_candidates[param] = candidate
-
-    red = mpatches.Patch(color='red', label='Red candidate')
-    blue = mpatches.Patch(color='blue', label='Blue candidate')
-    grey = mpatches.Patch(color='grey', label='Grey candidate')
-
-    for param, candidate in tie_candidates.items():
-        legend += 'Param {0}, tie between {1} \n'.format(param, candidate)
-
-    if not legend:
-        legend = 'Tie'
-    green = mpatches.Patch(color='green', label=legend)
-
-    plt.legend(handles=[red, blue, grey, green], loc='upper left')
-
-    y_pos = np.arange(len(bar_v))
-
-    plt.ylabel('Candidate', {'fontsize': 15})
-    plt.xlabel('Parameter Value', {'fontsize': 15})
-    plt.yticks((), color='k', size=10)
-    plt.bar(y_pos, height, color=colors_list)
-    plt.xticks(y_pos, bar_v)
-    plt.title('{0} Voter'.format(v.id))
-    #fig = plt.figure(num=v.id, figsize=(10,6), bbox_inches='tight')
-    plt.show()
-    return
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-file_name", help="Experiment file name", type=str)
+    parser.add_argument("-model_name", help="Prediction model, if you chose KP model you must fill k parameter too", choices=['KP', 'CV', 'AU', 'LD', 'AT'])
+    parser.add_argument("-k", help="The size of the winners group, can be 1/2/3 for KP model", type=int, default=None)
+    parser.add_argument("-division_param", help="Division parameter", type=int, default=3)
+    parser.add_argument("-l_bound", help="Lower bound for the parameter", type=int, default=None)
+    parser.add_argument("-u_bound", help="Higher bound for the parameter", type=int, default=None)
+    parser.add_argument("-division_param_b", help="Division parameter for a parameter in AU", type=int, default=None)
+    parser.add_argument("-division_param_a", help="Division parameter b parameter in AU", type=int, default=None)
+    parser.add_argument("-l_bound_a", help="Lower bound for the a parameter for AU model", type=int, default=None)
+    parser.add_argument("-u_bound_a", help="Higher bound for the a parameter for AU model", type=int, default=None)
+    parser.add_argument("-l_bound_b", help="Lower bound for the b parameter for AU model", type=int, default=None)
+    parser.add_argument("-u_bound_b", help="Higher bound for the b parameter for AU model", type=int, default=None)
+    parser.add_argument("-e", help="The error allowed for AU model", type=float, default=None)
+    parser.add_argument("-voter_id", help="The voter ID we want to check the models parameter for", type=str, default=None)
+    parser.add_argument("-voters_start_index", help="The voters start index in the voters list", type=int, default=0)
+    parser.add_argument("-voters_end_index", help="The voter end index in the voters list", type=int, default=9999999999)
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == '__main__':
-    voters, candidates = create_voters('OneShot-FullData_2204.xlsx')
-    plot_list = []
-    #find_pivotal_probabilities(3 , voters[:3])
-    for v in voters[:4]:
-        x = v.get_KP_parameter(3)
-        v_plot = create_plot(x, v)
-        plot_list.append(v_plot)
-    UI_obj = UI(voters)
+    args = parser_object()
+    voters, candidates = create_voters(args.file_name)
+    model = args.model_name
+    result = []
+    checked_voters = []
+    if args.voter_id:
+        for voter in voters:
+            if voter.id == args.voter_id:
+                checked_voters.append(voter)
+    else:
+        checked_voters = voters[args.voters_start_index: args.voters_end_index]
+
+    if model == 'KP':
+        if not args.k:
+            raise RuntimeError('For KP calculation you must enter k parameter')
+        for voter in checked_voters:
+            result = voter.get_KP_parameter(args.k)
+            plots.create_plot(result, voter, 'KP')
+
+    elif model == 'CV':
+        if not args.division_param or not args.l_bound or not args.u_bound:
+            raise RuntimeError('For CV calculation you must enter division_param, l_bound and u_bound parameters')
+        if args.l_bound > args.u_bound:
+            raise RuntimeError('Lower bound is bigger then the upper bound!')
+        for voter in checked_voters:
+            result = voter.get_CV_parameter(checked_voters, args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'CV')
+
+    elif model == 'LD':
+        if not args.division_param or not args.l_bound or not args.u_bound:
+            raise RuntimeError('For LD calculation you must enter division_param, l_bound and u_bound parameters')
+        if args.l_bound > args.u_bound:
+            raise RuntimeError('Lower bound is bigger then the upper bound!')
+        for voter in checked_voters:
+            result = voter.get_LD_parameter(args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'LD')
+
+    elif model == 'AT':
+        if not args.division_param or not args.l_bound or not args.u_bound:
+            raise RuntimeError('For AT calculation you must enter division_param, l_bound and u_bound parameters')
+        if args.l_bound > args.u_bound:
+            raise RuntimeError('Lower bound is bigger then the upper bound!')
+        for voter in checked_voters:
+            result = voter.get_AT_parameter(args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'AT')
+
+    elif model == 'AU':
+        if not args.division_param_a\
+                or not args.division_param_b\
+                or not args.e:
+            raise RuntimeError('For AU calculation you must enter division_param_a, division_param_b and '
+                               'e parameters, the params are {0}'.format(args))
+        if args.l_bound_a > args.u_bound_a:
+            raise RuntimeError('Lower bound is bigger then the upper bound!')
+        for voter in checked_voters:
+            result = voter.get_AU_parameters(args.division_param_b, args.l_bound_b,
+                                            args.u_bound_b, args.e,
+                                            args.division_param_a, args.l_bound_a, args.u_bound_a)
+            plots.create_plot(result, voter, 'AU')
+
 
 
 

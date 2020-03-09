@@ -3,21 +3,21 @@ import math
 import random
 
 class Models(object):
-    def KP(self, group_b):
+    def KP(self, group_b, utilities_dict):
         """
         :param group:(list) the winners group (names)
         :return: the best candidate by KP model
         """
-        return self.find_best_candidate_from_group(group_b)
+        return self.find_best_candidate_from_group(group_b, utilities_dict)
 
-    def find_best_candidate_from_group(self, group):
+    def find_best_candidate_from_group(self, utilities_dict, group):
         """
         :param group:(list of dictionary) the winners group (names)
         :return: the candidate from the winning group that maximaize the voter utility
         """
         utilities_group = {}
-        for c in group:
-            utilities_group.update(c)
+        for candidate_name, score in group.items():
+            utilities_group[candidate_name] = utilities_dict[candidate_name]
         max_utility = max(utilities_group.values())
         max_keys = [k for k, v in utilities_group.items() if v == max_utility]
         return max_keys
@@ -30,17 +30,16 @@ class Models(object):
         """
         f = lambda c1, c2, p: p * (utilities_dict[c1] - utilities_dict[c2])
         sum = 0
-        best_candidate = None
-
+        best_candidate = []
         for candidate_1 in utilities_dict.keys():
             sum_temp = 0
             for candidate_2 in utilities_dict.keys():
                 if candidate_1 != candidate_2:
                     p = P_dict[(candidate_1, candidate_2)]
                     sum_temp += f(candidate_1, candidate_2, p)
-            if sum_temp > sum:
+            if sum_temp >= sum:
                 sum = sum_temp
-                best_candidate = candidate_1
+                best_candidate.append(candidate_1)
         return best_candidate
 
     def calculate_n(self, s):
@@ -60,12 +59,12 @@ class Models(object):
         :return: U group (all candidates that there votes are max(s) - 2 * r * n
         """
         n = self.calculate_n(s)
-        U_group = []
+        U_group = {}
         max_c = max(s.items(), key=operator.itemgetter(1))[0]
         max_s = s[max_c]
         for candidate, score in s.items():
             if score >= max_s - 2 * r * n:
-                U_group.append({candidate: score})
+                U_group[candidate] = score
         return U_group
 
     def LD(self, r, s, utilities_dict):
@@ -91,8 +90,10 @@ class Models(object):
             b = b_dict[candidate]
             A = self.calc_A(b, s, candidate)
             score_dict[candidate] = f(A, candidate)
-        best_candidate = max(score_dict.items(), key=operator.itemgetter(1))[0]
-        return best_candidate
+        max_utility = max(score_dict.values())
+        max_keys = [k for k, v in score_dict.items() if v == max_utility]
+        #best_candidate = max(score_dict.items(), key=operator.itemgetter(1))[0]
+        return max_keys
 
     def calc_A(self, b, s, candidate):
         """
@@ -116,9 +117,9 @@ class Models(object):
         score_dict = {}
         f = lambda A, c, e, a: (math.pow(A, 2 - a)) * (math.pow(utilities_dict[c] + e, a))
         for candidate, utility in utilities_dict.items():
-            b = b_dict[candidate]
-            A = self.calc_A(b, s, candidate)
-            score_dict[candidate] = f(A, candidate, e, a)
+            b = round(b_dict[candidate],3)
+            A = round(self.calc_A(b, s, candidate),3)
+            score_dict[candidate] = round(f(A, candidate, e, a),3)
         best_candidate = max(score_dict.items(), key=operator.itemgetter(1))[0]
         return best_candidate
 
