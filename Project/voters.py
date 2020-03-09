@@ -34,7 +34,7 @@ class Voter(object):
             pivotal_dict = self.models.pivotal_p(psai, voters_list)
             model_value = self.models.CV(pivotal_dict, self.utilities_dict)
             model_values_dict[psai] = model_value
-        return model_values_dict
+        return model_values_dict, self.s
 
     def get_KP_parameter(self, k):
         """
@@ -54,7 +54,7 @@ class Voter(object):
                 group_k_list_of_dict[tup[0]] =tup [1]
             model_value = self.models.KP(group_k_list_of_dict, self.utilities_dict)
             model_values_dict[i + 1] = model_value
-        return model_values_dict
+        return model_values_dict, self.s
 
     def get_AT_parameter(self, division_param, l_bound, u_bound):
         """
@@ -75,7 +75,7 @@ class Voter(object):
                     model_value = self.models.AT(self.utilities_dict, b_dict, self.s,)
                     b_list = tuple(b_dict.items())
                     model_values_dict[b_list] = model_value
-        return model_values_dict
+        return model_values_dict, self.s
 
 
     def get_AU_parameters(self, division_param_b, l_bound_b, u_bound_b, e, division_param_a, l_bound_a = 0, u_bound_a = 2):
@@ -106,7 +106,7 @@ class Voter(object):
                         params_dict.update({'a': a})
                         params_list = tuple(params_dict.items())
                         model_values_dict[params_list] = model_value
-        return model_values_dict
+        return model_values_dict, self.s
 
     def get_LD_parameter(self, division_param, l_bound, u_bound):
         """
@@ -120,7 +120,7 @@ class Voter(object):
             r = i * (u_bound - l_bound)/ division_param #can change it to np.linspace
             model_value = self.models.LD(r, self.s, self.utilities_dict)
             model_values_dict[r] = model_value
-        return model_values_dict
+        return model_values_dict, self.s
 
 
 

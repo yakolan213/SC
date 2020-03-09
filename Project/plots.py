@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
-def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name):
+def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name,poll_info):
     plt.figure(figsize=(11, 6))
     plt.gcf().subplots_adjust(bottom=0.20)
     legend = ''
@@ -25,7 +25,7 @@ def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name):
     new_bar_l = []
     for x in bar_v:
         temp = ''
-        if (model_name == 'AU'):
+        if (model_name == 'AU' or model_name == 'AT'):
             # for y in x:
             #     temp += y + '\n'
             old = "), ("
@@ -35,7 +35,7 @@ def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name):
              temp = str(x)
         new_bar_l.append(temp)
     plt.xticks(y_pos, new_bar_l,fontsize=10)
-    title = "Model: " + model_name + '\n' + 'Voter ID:' + '{0}'.format(v.id)
+    title = "Model: " + model_name + '\n' + 'Voter ID:' + '{0}'.format(v.id) + "\nPoll info:" + str(poll_info)
     plt.title(title)
     plt.show()
     x=1
@@ -60,7 +60,7 @@ def create_color_list(param_values_dict):
             tie_candidates[str(param)] = candidate
     return tie_candidates, bar_v, height, colors_list
 
-def create_plot(param_values_dict, v, model_name):
+def create_plot(param_values_dict, v, model_name,poll_info):
     """
     create the plot object
     :param param_values_dict: the parameter we want to create the plot for
@@ -74,6 +74,6 @@ def create_plot(param_values_dict, v, model_name):
         else:
             tie_candidates, bar_v, height, colors_list = create_color_list(temp_dict)
             temp_dict = {}
-            print_plt(tie_candidates, bar_v, height, colors_list, v,model_name)
+            print_plt(tie_candidates, bar_v, height, colors_list, v,model_name,poll_info)
     tie_candidates, bar_v, height, colors_list = create_color_list(temp_dict)
-    print_plt(tie_candidates, bar_v, height, colors_list, v, model_name)
+    print_plt(tie_candidates, bar_v, height, colors_list, v, model_name,poll_info)

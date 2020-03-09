@@ -78,8 +78,8 @@ if __name__ == '__main__':
         if not args.k:
             raise RuntimeError('For KP calculation you must enter k parameter')
         for voter in checked_voters:
-            result = voter.get_KP_parameter(args.k)
-            plots.create_plot(result, voter, 'KP')
+            result,s = voter.get_KP_parameter(args.k)
+            plots.create_plot(result, voter, 'KP',s)
 
     elif model == 'CV':
         if not args.division_param or not args.l_bound or not args.u_bound:
@@ -87,8 +87,8 @@ if __name__ == '__main__':
         if args.l_bound > args.u_bound:
             raise RuntimeError('Lower bound is bigger then the upper bound!')
         for voter in checked_voters:
-            result = voter.get_CV_parameter(checked_voters, args.division_param, args.l_bound, args.u_bound)
-            plots.create_plot(result, voter, 'CV')
+            result,s = voter.get_CV_parameter(checked_voters, args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'CV',s)
 
     elif model == 'LD':
         if not args.division_param or not args.l_bound or not args.u_bound:
@@ -96,8 +96,8 @@ if __name__ == '__main__':
         if args.l_bound > args.u_bound:
             raise RuntimeError('Lower bound is bigger then the upper bound!')
         for voter in checked_voters:
-            result = voter.get_LD_parameter(args.division_param, args.l_bound, args.u_bound)
-            plots.create_plot(result, voter, 'LD')
+            result,s = voter.get_LD_parameter(args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'LD',s)
 
     elif model == 'AT':
         if not args.division_param or not args.l_bound or not args.u_bound:
@@ -105,8 +105,8 @@ if __name__ == '__main__':
         if args.l_bound > args.u_bound:
             raise RuntimeError('Lower bound is bigger then the upper bound!')
         for voter in checked_voters:
-            result = voter.get_AT_parameter(args.division_param, args.l_bound, args.u_bound)
-            plots.create_plot(result, voter, 'AT')
+            result,s = voter.get_AT_parameter(args.division_param, args.l_bound, args.u_bound)
+            plots.create_plot(result, voter, 'AT',s)
 
     elif model == 'AU':
         if not args.division_param_a\
@@ -117,10 +117,10 @@ if __name__ == '__main__':
         if args.l_bound_a > args.u_bound_a:
             raise RuntimeError('Lower bound is bigger then the upper bound!')
         for voter in checked_voters:
-            result = voter.get_AU_parameters(args.division_param_b, args.l_bound_b,
+            result,s = voter.get_AU_parameters(args.division_param_b, args.l_bound_b,
                                             args.u_bound_b, args.e,
                                             args.division_param_a, args.l_bound_a, args.u_bound_a)
-            plots.create_plot(result, voter, 'AU')
+            plots.create_plot(result, voter, 'AU',s)
 
 
 
