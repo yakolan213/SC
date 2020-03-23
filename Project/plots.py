@@ -3,6 +3,13 @@ import numpy as np
 import matplotlib.patches as mpatches
 
 def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name,poll_info):
+    """
+    :param tie_candidates: (dict) the candidates that are in tie
+    :param bar_v: (list) the value for each parameter
+    :param height: (list) list of 1 - for ploting
+    :param colors_list: (list) the color list
+    :param  v: (voter) the voter object
+    """
     plt.figure(figsize=(11, 6))
     plt.gcf().subplots_adjust(bottom=0.20)
     legend = ''
@@ -41,6 +48,11 @@ def print_plt(tie_candidates, bar_v, height, colors_list, v,model_name,poll_info
     x=1
 
 def create_color_list(param_values_dict):
+    """
+    creates the color list
+    :param param_values_dict: (dict) the parameter values dict
+    return: color list, the candidate that are in tie and the values to plot
+    """
     bar_v = []
     height = []
     colors_list = []
